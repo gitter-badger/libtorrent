@@ -309,7 +309,7 @@ bool rpc_manager::incoming(msg const& m, node_id* id
 		m_log->log(dht_logger::rpc_manager, "reply with error from %s: %s"
 			, print_endpoint(m.addr).c_str(), err_ent.list_string_value_at(1).c_str());
 #endif
-		o->reply(m);
+		o->timeout();
 		return false;
 	}
 
