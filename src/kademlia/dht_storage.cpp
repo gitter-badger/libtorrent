@@ -473,19 +473,6 @@ namespace
 		{
 			time_point now(aux::time_now());
 
-			for (dht_immutable_table_t::iterator i = m_immutable_table.begin();
-				 i != m_immutable_table.end();)
-			{
-				if (i->second.last_seen + minutes(60) > now)
-				{
-					++i;
-					continue;
-				}
-				free(i->second.value);
-				m_immutable_table.erase(i++);
-				m_counters.inc_stats_counter(counters::dht_immutable_data, -1);
-			}
-
 			// look through all peers and see if any have timed out
 			for (table_t::iterator i = m_map.begin(), end(m_map.end()); i != end;)
 			{
@@ -503,6 +490,39 @@ namespace
 					m_map.erase(it);
 					m_counters.inc_stats_counter(counters::dht_torrents, -1);
 				}
+			}
+
+			if (0 == m_settings.item_lifetime) return;
+
+			time_duration lifetime = seconds(m_settings.item_lifetime);
+			// item lifetime must >= 120 minutes.
+			if (lifetime < minutes(120)) lifetime = minutes(120);
+
+			for (dht_immutable_table_t::iterator i = m_immutable_table.begin();
+				i != m_immutable_table.end();)
+			{
+				if (i->second.last_seen + lifetime > now)
+				{
+					++i;
+					continue;
+				}
+				free(i->second.value);
+				m_immutable_table.erase(i++);
+				m_counters.inc_stats_counter(counters::dht_immutable_data, -1);
+			}
+
+			for (dht_mutable_table_t::iterator i = m_mutable_table.begin();
+				i != m_mutable_table.end();)
+			{
+				if (i->second.last_seen + lifetime > now)
+				{
+					++i;
+					continue;
+				}
+				free(i->second.value);
+				free(i->second.salt);
+				m_mutable_table.erase(i++);
+				m_counters.inc_stats_counter(counters::dht_mutable_data, -1);
 			}
 		}
 
