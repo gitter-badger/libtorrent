@@ -146,12 +146,12 @@ public:
 
 	int bucket_size(int bucket) const
 	{
-		int num_buckets = m_buckets.size();
-		if (num_buckets == 0) return 0;
-		if (bucket >= num_buckets) bucket = num_buckets - 1;
-		table_t::const_iterator i = m_buckets.begin();
-		std::advance(i, bucket);
-		return int(i->live_nodes.size());
+		return size(bucket).first;
+	}
+
+	int replacements_size(int bucket) const
+	{
+		return size(bucket).second;
 	}
 
 	void for_each_node(void (*)(void*, node_entry const&)
@@ -163,6 +163,9 @@ public:
 	// replacement buckets and the number of nodes in the main buckets that have
 	// been pinged and confirmed up
 	boost::tuple<int, int, int> size() const;
+
+	// returns the number of live_nodes and replacement in the bucket.
+	std::pair<int, int> size(int bucket) const;
 
 	boost::int64_t num_global_nodes() const;
 

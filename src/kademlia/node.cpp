@@ -572,7 +572,8 @@ void node::send_single_refresh(udp::endpoint const& ep, int bucket
 	e["y"] = "q";
 	entry& a = e["a"];
 
-	if (m_table.bucket_size(bucket) < m_table.bucket_limit(bucket))
+	if (m_table.bucket_size(bucket) < m_table.bucket_limit(bucket)
+		|| m_table.replacements_size(bucket) < m_table.bucket_size())
 	{
 		// use get_peers instead of find_node. We'll get nodes in the response
 		// either way.

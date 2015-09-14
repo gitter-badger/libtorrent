@@ -154,6 +154,17 @@ boost::tuple<int, int, int> routing_table::size() const
 	return boost::make_tuple(nodes, replacements, confirmed);
 }
 
+std::pair<int, int> routing_table::size(int bucket) const
+{
+	int num_buckets = m_buckets.size();
+	if (num_buckets == 0) return std::make_pair(0, 0);
+
+	if (bucket >= num_buckets) bucket = num_buckets - 1;
+	table_t::const_iterator i = m_buckets.begin();
+	std::advance(i, bucket);
+	return std::make_pair(i->live_nodes.size(), i->replacements.size());
+}
+
 boost::int64_t routing_table::num_global_nodes() const
 {
 	int deepest_bucket = 0;
