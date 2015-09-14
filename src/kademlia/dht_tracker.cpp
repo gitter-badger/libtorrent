@@ -192,7 +192,7 @@ namespace libtorrent { namespace dht
 		m_blocker.set_rate_limit(m_settings.block_ratelimit);
 
 		error_code ec;
-		m_refresh_timer.expires_from_now(seconds(5), ec);
+		m_refresh_timer.expires_from_now(seconds(m_settings.interval), ec);
 		m_refresh_timer.async_wait(
 			boost::bind(&dht_tracker::refresh_timeout, self(), _1));
 	}
@@ -216,8 +216,30 @@ namespace libtorrent { namespace dht
 		}
 
 #if defined TORRENT_DEBUG && TORRENT_USE_IOSTREAM
-		std::ofstream st("dht_routing_table_state.txt", std::ios_base::trunc);
-		m_dht.print_state(st);
+		std::ofstream st("state.txt", std::ios_base::app);
+		static bool first = true;
+		if (first)
+		{
+			st << "Readonly: " << m_settings.read_only
+				<< ", ping: " << m_settings.ping
+				<< ", bootstrap: " << m_settings.strap
+				<< ", refresh: " << m_settings.interval
+				<< " seconds.\n";
+			st << "Bytes_In, Bytes_Out, Bytes_Sum, Messages_In, Messages_Out, Ping, Get_Peers, Live_Nodes, Replacements, Pinged_Nodes\n";
+			first = false;
+		}
+
+		boost::tuple<int, int, int> nums = m_dht.size();
+			st << m_counters[counters::dht_bytes_in] << ", " << m_counters[counters::dht_bytes_out]
+			<< ", " << m_counters[counters::dht_bytes_in] + m_counters[counters::dht_bytes_out]
+			<< ", " << m_counters[counters::dht_messages_in]
+			<< ", " << m_counters[counters::dht_messages_out]
+			<< ", " << m_counters[counters::dht_ping_out]
+			<< ", " << m_counters[counters::dht_get_peers_out]
+			<< ", " << nums.get<0>()
+			<< ", " << nums.get<1>()
+			<< ", " << nums.get<2>()
+			<< "\n";
 #endif
 	}
 

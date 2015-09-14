@@ -41,15 +41,24 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <libtorrent/bencode.hpp>
 #endif
 
+#include <fstream>
+
 namespace libtorrent { namespace dht
 {
 
 void get_item::got_data(bdecode_node const& v,
 	char const* pk,
 	boost::uint64_t seq,
-	char const* sig)
+	char const* sig,
+	time_point start)
 {
 	// we received data!
+	if (m_first) {
+		std::ofstream st("performance.txt", std::ios_base::app);
+		time_point now = clock_type::now();
+		st << total_milliseconds(now - start) << "\n";
+		m_first = false;
+	}
 
 	std::pair<char const*, int> salt(m_salt.c_str(), int(m_salt.size()));
 
@@ -122,6 +131,7 @@ get_item::get_item(
 	, data_callback const& dcallback)
 	: find_data(dht_node, target, nodes_callback())
 	, m_data_callback(dcallback)
+	, m_first(true)
 {
 }
 
@@ -135,6 +145,7 @@ get_item::get_item(
 		, nodes_callback())
 	, m_data_callback(dcallback)
 	, m_data(pk, salt)
+	, m_first(true)
 {
 }
 
@@ -295,7 +306,7 @@ void get_item_observer::reply(msg const& m)
 	bdecode_node v = r.dict_find("v");
 	if (v)
 	{
-		static_cast<get_item*>(algorithm())->got_data(v, pk, seq, sig);
+		static_cast<get_item*>(algorithm())->got_data(v, pk, seq, sig, sent());
 	}
 
 	find_data_observer::reply(m);

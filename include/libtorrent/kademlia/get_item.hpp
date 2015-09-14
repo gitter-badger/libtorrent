@@ -48,7 +48,8 @@ public:
 	void got_data(bdecode_node const& v,
 		char const* pk,
 		boost::uint64_t seq,
-		char const* sig);
+		char const* sig,
+		time_point start);
 
 	// for immutable itms
 	get_item(node& dht_node
@@ -73,6 +74,7 @@ protected:
 	data_callback m_data_callback;
 	item m_data;
 	std::string m_salt;
+	bool m_first;
 };
 
 class get_item_observer : public find_data_observer

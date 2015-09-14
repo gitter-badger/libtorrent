@@ -518,16 +518,21 @@ void node::tick()
 {
 	// every now and then we refresh our own ID, just to keep
 	// expanding the routing table buckets closer to us.
-	time_point now = aux::time_now();
-	if (m_last_self_refresh + minutes(10) < now)
+
+
+	if (m_settings.strap)
 	{
-		node_id target = m_id;
-		make_id_secret(target);
-		boost::intrusive_ptr<dht::bootstrap> r(new dht::bootstrap(*this, target
-			, boost::bind(&nop)));
-		r->start();
-		m_last_self_refresh = now;
-		return;
+		time_point now = aux::time_now();
+		if (m_last_self_refresh + minutes(10) < now)
+		{
+			node_id target = m_id;
+			make_id_secret(target);
+			boost::intrusive_ptr<dht::bootstrap> r(new dht::bootstrap(*this, target
+				, boost::bind(&nop)));
+			r->start();
+			m_last_self_refresh = now;
+			return;
+		}
 	}
 
 	node_entry const* ne = m_table.next_refresh();
@@ -572,7 +577,8 @@ void node::send_single_refresh(udp::endpoint const& ep, int bucket
 	e["y"] = "q";
 	entry& a = e["a"];
 
-	if (m_table.bucket_size(bucket) < m_table.bucket_limit(bucket)
+	if (!m_settings.ping
+		|| m_table.bucket_size(bucket) < m_table.bucket_limit(bucket)
 		|| m_table.replacements_size(bucket) < m_table.bucket_size())
 	{
 		// use get_peers instead of find_node. We'll get nodes in the response
