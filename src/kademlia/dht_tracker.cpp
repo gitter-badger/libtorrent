@@ -279,7 +279,7 @@ namespace libtorrent { namespace dht
 	void dht_tracker::get_item(sha1_hash const& target
 		, boost::function<void(item const&)> cb)
 	{
-		m_dht.get_item(target, boost::bind(&get_immutable_item_callback, _1, cb));
+        m_dht.get_item(target, cb);
 	}
 
 	// key is a 32-byte binary string, the public key to look up.
@@ -288,26 +288,25 @@ namespace libtorrent { namespace dht
 		, boost::function<void(item const&, bool)> cb
 		, std::string salt)
 	{
-		m_dht.get_item(key, salt, boost::bind(&get_mutable_item_callback, _1, _2, cb));
+        m_dht.get_item(key, salt, cb);
 	}
 
-	void dht_tracker::put_item(entry data
-		, boost::function<void()> cb)
+    void dht_tracker::put_item(entry data, boost::function<void(bool)> cb)
 	{
-		std::string flat_data;
-		bencode(std::back_inserter(flat_data), data);
-		sha1_hash target = item_target_id(
-			std::pair<char const*, int>(flat_data.c_str(), flat_data.size()));
+//		std::string flat_data;
+//		bencode(std::back_inserter(flat_data), data);
+//		sha1_hash target = item_target_id(
+//			std::pair<char const*, int>(flat_data.c_str(), flat_data.size()));
 
-		m_dht.get_item(target, boost::bind(&put_immutable_item_callback
-			, _1, cb, data));
+//        m_dht.put_item(target, data, cb);
 	}
 
 	void dht_tracker::put_item(char const* key
-		, boost::function<void(item&)> cb, std::string salt)
+        , boost::function<void(item&, bool)> cb
+        , boost::function<void(item&)> data_cb, std::string salt)
 	{
-		m_dht.get_item(key, salt, boost::bind(&put_mutable_item_callback
-			, _1, _2, cb));
+//		m_dht.get_item(key, salt, boost::bind(&put_mutable_item_callback
+//			, _1, _2, cb));
 	}
 
 	void dht_tracker::direct_request(udp::endpoint ep, entry& e

@@ -43,7 +43,7 @@ namespace libtorrent { namespace dht
 class get_item : public find_data
 {
 public:
-	typedef boost::function<bool(item&, bool)> data_callback;
+    typedef boost::function<void(item&, bool)> data_callback;
 
 	void got_data(bdecode_node const& v,
 		char const* pk,
@@ -53,13 +53,15 @@ public:
 	// for immutable itms
 	get_item(node& dht_node
 		, node_id target
-		, data_callback const& dcallback);
+        , data_callback const& dcallback
+    , nodes_callback const& ncallback);
 
 	// for mutable items
 	get_item(node& dht_node
 		, char const* pk
 		, std::string const& salt
-		, data_callback const& dcallback);
+        , data_callback const& dcallback
+    , nodes_callback const& ncallback);
 
 	virtual char const* name() const;
 

@@ -433,7 +433,7 @@ void node::direct_request(boost::asio::ip::udp::endpoint ep, entry& e
 }
 
 void node::get_item(sha1_hash const& target
-	, boost::function<bool(item&, bool)> f)
+    , boost::function<void(item&)> f)
 {
 #ifndef TORRENT_DISABLE_LOGGING
 	if (m_observer)
@@ -446,12 +446,12 @@ void node::get_item(sha1_hash const& target
 #endif
 
 	boost::intrusive_ptr<dht::get_item> ta;
-	ta.reset(new dht::get_item(*this, target, f));
+    ta.reset(new dht::get_item(*this, target, boost::bind(f, _1), find_data::nodes_callback()));
 	ta->start();
 }
 
 void node::get_item(char const* pk, std::string const& salt
-	, boost::function<bool(item&, bool)> f)
+    , boost::function<void(item&, bool)> f)
 {
 #ifndef TORRENT_DISABLE_LOGGING
 	if (m_observer)
@@ -463,9 +463,27 @@ void node::get_item(char const* pk, std::string const& salt
 #endif
 
 	boost::intrusive_ptr<dht::get_item> ta;
-	ta.reset(new dht::get_item(*this, pk, salt, f));
+    ta.reset(new dht::get_item(*this, pk, salt, f, find_data::nodes_callback()));
 	ta->start();
 }
+
+void node::put_item(sha1_hash const& target, entry data, boost::function<void(bool)> f)
+{
+#ifndef TORRENT_DISABLE_LOGGING
+    if (m_observer)
+    {
+        char hex_target[41];
+        to_hex(reinterpret_cast<char const*>(&target[0]), 20, hex_target);
+        m_observer->log(dht_logger::node, "starting get for [ hash: %s ]"
+            , hex_target);
+    }
+#endif
+
+//    boost::intrusive_ptr<dht::get_item> ta;
+//    ta.reset(new dht::get_item(*this, target, f));
+//    ta->start();
+}
+
 
 struct ping_observer : observer
 {

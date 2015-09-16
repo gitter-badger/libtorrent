@@ -99,11 +99,11 @@ namespace libtorrent { namespace dht
 			, boost::function<void(item const&, bool)> cb
 			, std::string salt = std::string());
 
-		void put_item(entry data
-			, boost::function<void()> cb);
+        void put_item(entry data, boost::function<void(bool)> cb);
 
 		void put_item(char const* key
-			, boost::function<void(item&)> cb, std::string salt = std::string());
+            , boost::function<void(item&, bool)> cb
+            , boost::function<void(item&)> data_cb, std::string salt = std::string());
 
 		// send an arbitrary DHT request directly to a node
 		void direct_request(udp::endpoint ep, entry& e

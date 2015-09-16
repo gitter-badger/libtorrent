@@ -171,7 +171,10 @@ public:
 		: observer(algo, ep, id)
 	{}
 
-	void reply(msg const&) { flags |= flag_done; }
+    void reply(msg const&) {
+        flags |= flag_done;
+
+    }
 };
 
 struct count_peers
@@ -248,8 +251,10 @@ public:
 	void direct_request(boost::asio::ip::udp::endpoint ep, entry& e
 		, boost::function<void(msg const&)> f);
 
-	void get_item(sha1_hash const& target, boost::function<bool(item&, bool)> f);
-	void get_item(char const* pk, std::string const& salt, boost::function<bool(item&, bool)> f);
+    void get_item(sha1_hash const& target, boost::function<void(item&)> f);
+    void get_item(char const* pk, std::string const& salt, boost::function<void(item&, bool)> f);
+
+    void put_item(sha1_hash const& target, entry data, boost::function<void(bool)> f);
 
 	bool verify_token(std::string const& token, char const* info_hash
 		, udp::endpoint const& addr) const;

@@ -79,7 +79,10 @@ void get_item::got_data(bdecode_node const& v,
 			// if the data is non-authoritative.
 			// we can just ignore the return value here since for mutable
 			// data, we always need the transaction done.
-			m_data_callback(m_data, false);
+
+            // if there is a nodes_callback, then this is a put rpc,
+            // only need call data_callback when done.
+            if (!m_nodes_callback) m_data_callback(m_data, false);
 		}
 	}
 	else if (m_data.empty())
@@ -88,39 +91,30 @@ void get_item::got_data(bdecode_node const& v,
 		// and it's immutable
 
 		m_data.assign(v);
-		bool put_requested = m_data_callback(m_data, true);
+        m_data_callback(m_data, true);
+
+        // if no nodes_callback, this is a get.
+        // Now that we've got it and the user doesn't want to do a put
+        // there's no point in continuing to query other nodes
+        if (!m_nodes_callback) abort();
 
 		// if we intend to put, we need to keep going
 		// until we find the closest nodes, since those
 		// are the ones we're putting to
-		if (put_requested)
-		{
 #if TORRENT_USE_ASSERTS
-			std::vector<char> buffer;
-			bencode(std::back_inserter(buffer), m_data.value());
-			TORRENT_ASSERT(m_target == hasher(&buffer[0], buffer.size()).final());
+        std::vector<char> buffer;
+        bencode(std::back_inserter(buffer), m_data.value());
+        TORRENT_ASSERT(m_target == hasher(&buffer[0], buffer.size()).final());
 #endif
-
-			// this function is called when we're done, passing
-			// in all relevant nodes we received data from close
-			// to the target.
-			m_nodes_callback = boost::bind(&get_item::put, this, _1);
-		}
-		else
-		{
-			// There can only be one true immutable item with a given id
-			// Now that we've got it and the user doesn't want to do a put
-			// there's no point in continuing to query other nodes
-			abort();
-		}
 	}
 }
 
 get_item::get_item(
 	node& dht_node
 	, node_id target
-	, data_callback const& dcallback)
-	: find_data(dht_node, target, nodes_callback())
+    , data_callback const& dcallback
+    , nodes_callback const& ncallback)
+    : find_data(dht_node, target, ncallback)
 	, m_data_callback(dcallback)
 {
 }
@@ -129,10 +123,11 @@ get_item::get_item(
 	node& dht_node
 	, char const* pk
 	, std::string const& salt
-	, data_callback const& dcallback)
+    , data_callback const& dcallback
+    , nodes_callback const& ncallback)
 	: find_data(dht_node, item_target_id(
 		std::make_pair(salt.c_str(), int(salt.size())), pk)
-		, nodes_callback())
+        , ncallback)
 	, m_data_callback(dcallback)
 	, m_data(pk, salt)
 {
@@ -175,31 +170,19 @@ void get_item::done()
 		// for mutable data, now we have authoritative data since
 		// we've heard from everyone, to be sure we got the
 		// latest version of the data (i.e. highest sequence number)
-		bool put_requested = m_data_callback(m_data, true);
-		if (put_requested)
-		{
-#if TORRENT_USE_ASSERTS
-			if (m_data.is_mutable())
-			{
-				TORRENT_ASSERT(m_target
-					== item_target_id(std::pair<char const*, int>(m_data.salt().c_str()
-						, m_data.salt().size())
-					, m_data.pk().data()));
-			}
-			else
-			{
-				std::vector<char> buffer;
-				bencode(std::back_inserter(buffer), m_data.value());
-				TORRENT_ASSERT(m_target == hasher(&buffer[0], buffer.size()).final());
-			}
-#endif
+        m_data_callback(m_data, true);
 
-			// this function is called when we're done, passing
-			// in all relevant nodes we received data from close
-			// to the target.
-			m_nodes_callback = boost::bind(&get_item::put, this, _1);
-		}
+#if TORRENT_USE_ASSERTS
+        if (m_data.is_mutable())
+        {
+            TORRENT_ASSERT(m_target
+                == item_target_id(std::pair<char const*, int>(m_data.salt().c_str()
+                    , m_data.salt().size())
+                , m_data.pk().data()));
+        }
+#endif
 	}
+
 	find_data::done();
 }
 
