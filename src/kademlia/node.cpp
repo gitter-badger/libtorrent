@@ -324,7 +324,7 @@ namespace
 		// create a dummy traversal_algorithm
 		boost::intrusive_ptr<traversal_algorithm> algo(
 			new traversal_algorithm(node, (node_id::min)()));
-
+        printf("dummy algo for announce: %p\n", algo.get());
 		// store on the first k nodes
 		for (std::vector<std::pair<node_entry, std::string> >::const_iterator i = v.begin()
 			, end(v.end()); i != end; ++i)
@@ -353,6 +353,7 @@ namespace
 			a["seed"] = (flags & node::flag_seed) ? 1 : 0;
 			if (flags & node::flag_implied_port) a["implied_port"] = 1;
 			node.stats_counters().inc_stats_counter(counters::dht_announce_peer_out);
+            std::cout << "invoke announce to " << i->first.ep() << "\n";
 			node.m_rpc.invoke(e, i->first.ep(), o);
 		}
 	}

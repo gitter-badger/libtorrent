@@ -171,9 +171,12 @@ public:
 		: observer(algo, ep, id)
 	{}
 
-    void reply(msg const&) {
+    void reply(msg const&m) {
         flags |= flag_done;
-
+        if (m.message.dict_find_list("e")) {
+            std::cout << "announce failed to " << target_addr() << "\n";
+        }
+        std::cout << "announce success to " << target_addr() << "\n";
     }
 };
 

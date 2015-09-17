@@ -518,6 +518,7 @@ void traversal_algorithm::init()
 traversal_algorithm::~traversal_algorithm()
 {
 	m_node.remove_traversal_algorithm(this);
+    printf("Desctructor %p\n", this);
 }
 
 void traversal_algorithm::status(dht_lookup& l)
