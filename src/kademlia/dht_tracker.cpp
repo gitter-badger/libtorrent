@@ -305,8 +305,8 @@ namespace libtorrent { namespace dht
         , boost::function<void(item&, bool)> cb
         , boost::function<void(item&)> data_cb, std::string salt)
 	{
-//		m_dht.get_item(key, salt, boost::bind(&put_mutable_item_callback
-//			, _1, _2, cb));
+        m_dht.get_item(key, salt, boost::bind(&put_mutable_item_callback
+            , _1, _2, data_cb));
 	}
 
 	void dht_tracker::direct_request(udp::endpoint ep, entry& e

@@ -89,6 +89,8 @@ traversal_algorithm::traversal_algorithm(
 	, m_responses(0)
 	, m_timeouts(0)
 {
+    printf("traversal_algorithm %p\n", this, name());
+
 #ifndef TORRENT_DISABLE_LOGGING
 	if (get_node().observer())
 	{
@@ -229,6 +231,7 @@ void traversal_algorithm::start()
 {
 	// in case the routing table is empty, use the
 	// router nodes in the table
+    printf("start %p, name %s\n", this, name());
 	if (m_results.size() < 3) add_router_entries();
 	init();
 	bool is_done = add_requests();
@@ -511,6 +514,8 @@ void traversal_algorithm::add_router_entries()
 
 void traversal_algorithm::init()
 {
+    printf("traversal_algorithm::init() %p, name %s\n", this, name());
+
 	m_branch_factor = m_node.branch_factor();
 	m_node.add_traversal_algorithm(this);
 }

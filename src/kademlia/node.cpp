@@ -525,6 +525,7 @@ struct ping_observer : observer
 				node_id id;
 				std::copy(nodes, nodes + 20, id.begin());
 				nodes += 20;
+                if (algorithm())
 				algorithm()->get_node().m_table.heard_about(id
 					, detail::read_v4_endpoint<udp::endpoint>(nodes));
 			}
@@ -540,6 +541,7 @@ void node::tick()
 	time_point now = aux::time_now();
 	if (m_last_self_refresh + minutes(10) < now)
 	{
+        printf("Re-bootstrap!!!!\n");
 		node_id target = m_id;
 		make_id_secret(target);
 		boost::intrusive_ptr<dht::bootstrap> r(new dht::bootstrap(*this, target
@@ -581,9 +583,9 @@ void node::send_single_refresh(udp::endpoint const& ep, int bucket
 	// create a dummy traversal_algorithm
 	// this is unfortunately necessary for the observer
 	// to free itself from the pool when it's being released
-	boost::intrusive_ptr<traversal_algorithm> algo(
-		new traversal_algorithm(*this, (node_id::min)()));
-	observer_ptr o(new (ptr) ping_observer(algo, ep, id));
+    boost::intrusive_ptr<traversal_algorithm> algo(
+        new traversal_algorithm(*this, (node_id::min)()));
+    observer_ptr o(new (ptr) ping_observer(algo, ep, id));
 #if defined TORRENT_DEBUG || defined TORRENT_RELEASE_ASSERTS
 	o->m_in_constructor = false;
 #endif

@@ -55,6 +55,7 @@ int main(int argc, char* argv[])
 
 #else
 
+boost::chrono::system_clock::time_point g_start;
 void usage()
 {
 	fprintf(stderr,
@@ -88,11 +89,6 @@ alert* wait_for_alert(lt::session& s, int alert_type)
 		{
 			if ((*i)->type() != alert_type)
 			{
-				static int spinner = 0;
-				static const char anim[] = {'-', '\\', '|', '/'};
-				printf("\r%c", anim[spinner]);
-				fflush(stdout);
-				spinner = (spinner + 1) & 3;
 				//print some alerts?
 				continue;
 			}
@@ -124,13 +120,19 @@ void put_string(entry& e, boost::array<char, 64>& sig, boost::uint64_t& seq
 
 void bootstrap(lt::session& s)
 {
+    boost::chrono::duration<double> sec = boost::chrono::system_clock::now() - g_start;
+	std::cout << sec.count() << ": ";
 	printf("bootstrapping\n");
 	wait_for_alert(s, dht_bootstrap_alert::alert_type);
 	wait_for_alert(s, dht_bootstrap_alert::alert_type);
+    sec = boost::chrono::system_clock::now() - g_start;
+	std::cout << sec.count() << ": ";
+	printf("bootstrapping done\n");
 }
 
 int main(int argc, char* argv[])
 {
+    	g_start = boost::chrono::system_clock::now();
 	// skip pointer to self
 	++argv;
 	--argc;
@@ -168,6 +170,7 @@ int main(int argc, char* argv[])
 	sett.set_bool(settings_pack::enable_dht, true);
 	s.apply_settings(sett);
 
+/*
 	FILE* f = fopen(".dht", "rb");
 	if (f != NULL)
 	{
@@ -191,6 +194,7 @@ int main(int argc, char* argv[])
 		}
 		fclose(f);
 	}
+*/
 
 	if (strcmp(argv[0], "get") == 0)
 	{
@@ -215,6 +219,8 @@ int main(int argc, char* argv[])
 		bootstrap(s);
 		s.dht_get_item(target);
 
+    boost::chrono::duration<double> sec = boost::chrono::system_clock::now() - g_start;
+	std::cout << sec.count() << ": ";
 		printf("GET %s\n", to_hex(target.to_string()).c_str());
 
 		alert* a = wait_for_alert(s, dht_immutable_item_alert::alert_type);
@@ -224,6 +230,8 @@ int main(int argc, char* argv[])
 		if (item)
 			data.swap(item->item);
 
+    sec = boost::chrono::system_clock::now() - g_start;
+	std::cout << sec.count() << ": ";
 		printf("%s", data.to_string().c_str());
 	}
 	else if (strcmp(argv[0], "put") == 0)
@@ -237,10 +245,17 @@ int main(int argc, char* argv[])
 
 		bootstrap(s);
 		sha1_hash target = s.dht_put_item(data);
-		
+		 
+    boost::chrono::duration<double> sec = boost::chrono::system_clock::now() - g_start;
+	std::cout << sec.count() << ": ";
 		printf("PUT %s\n", to_hex(target.to_string()).c_str());
 
-		wait_for_alert(s, dht_put_alert::alert_type);
+		alert* a = wait_for_alert(s, dht_put_alert::alert_type);
+		std::cout << a->message() << std::endl;
+
+    sec = boost::chrono::system_clock::now() - g_start;
+	std::cout << sec.count() << ": ";
+		printf("PUT DONE.\n");
 	}
 	else if (strcmp(argv[0], "mput") == 0)
 	{
@@ -273,10 +288,15 @@ int main(int argc, char* argv[])
 		s.dht_put_item(public_key, boost::bind(&put_string, _1, _2, _3, _4
 			, public_key.data(), private_key.data(), argv[0]));
 
+    boost::chrono::duration<double> sec = boost::chrono::system_clock::now() - g_start;
+	std::cout << sec.count() << ": ";
 		printf("public key: %s\n", to_hex(std::string(public_key.data()
 			, public_key.size())).c_str());
 
-		wait_for_alert(s, dht_put_alert::alert_type);
+		alert* a = wait_for_alert(s, dht_put_alert::alert_type);
+		std::cout << a->message() << std::endl;
+    sec = boost::chrono::system_clock::now() - g_start;
+	std::cout << sec.count() << ": Done\n";
 	}
 	else if (strcmp(argv[0], "mget") == 0)
 	{
@@ -299,6 +319,8 @@ int main(int argc, char* argv[])
 		}
 
 		bootstrap(s);
+    boost::chrono::duration<double> sec = boost::chrono::system_clock::now() - g_start;
+	std::cout << sec.count() << ": MGET";
 		s.dht_get_item(public_key);
 
 		bool authoritative = false;
@@ -313,6 +335,8 @@ int main(int argc, char* argv[])
 				data.swap(item->item);
 
 			authoritative = item->authoritative;
+    boost::chrono::duration<double> sec = boost::chrono::system_clock::now() - g_start;
+	std::cout << sec.count(); 
 			printf("%s: %s", authoritative ? "auth" : "non-auth", data.to_string().c_str());
 		}
 	}
@@ -321,6 +345,7 @@ int main(int argc, char* argv[])
 		usage();
 	}
 
+/*
 	entry e;
 	s.save_state(e, lt::session::save_dht_state);
 	std::vector<char> state;
@@ -333,6 +358,7 @@ int main(int argc, char* argv[])
 	}
 	fwrite(&state[0], 1, state.size(), f);
 	fclose(f);
+*/
 }
 
 #endif

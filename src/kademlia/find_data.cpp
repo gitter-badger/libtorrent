@@ -99,6 +99,7 @@ find_data::find_data(
 	, m_nodes_callback(ncallback)
 	, m_done(false)
 {
+    printf("find_data %p\n", this);
 }
 
 void find_data::start()

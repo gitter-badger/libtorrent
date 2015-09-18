@@ -203,6 +203,7 @@ void get_item::put(std::vector<std::pair<node_entry, std::string> > const& v)
 	// create a dummy traversal_algorithm
 	boost::intrusive_ptr<traversal_algorithm> algo(
 		new traversal_algorithm(m_node, (node_id::min)()));
+    printf("dummy algo for put: %p\n", algo.get());
 
 	// store on the first k nodes
 	for (std::vector<std::pair<node_entry, std::string> >::const_iterator i = v.begin()

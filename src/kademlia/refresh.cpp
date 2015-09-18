@@ -72,6 +72,7 @@ bootstrap::bootstrap(
 	, done_callback const& callback)
 	: get_peers(dht_node, target, get_peers::data_callback(), callback, false)
 {
+    printf("bootstrap: %p\n", this);
 }
 
 char const* bootstrap::name() const { return "bootstrap"; }

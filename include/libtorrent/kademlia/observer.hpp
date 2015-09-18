@@ -72,7 +72,7 @@ struct observer : boost::noncopyable
 		, m_transaction_id()
 		, flags(0)
 	{
-		TORRENT_ASSERT(a);
+        //TORRENT_ASSERT(a);
 #if defined TORRENT_DEBUG || defined TORRENT_RELEASE_ASSERTS
 		m_in_constructor = true;
 		m_was_sent = false;
@@ -80,6 +80,7 @@ struct observer : boost::noncopyable
 		m_in_use = true;
 #endif
 		set_target(ep);
+        if (!m_algorithm)   printf("observer: %p\n", this);
 	}
 
 	// defined in rpc_manager.cpp

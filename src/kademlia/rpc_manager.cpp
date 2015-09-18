@@ -76,8 +76,10 @@ void intrusive_ptr_release(observer const* o)
 	if (--o->m_refs == 0)
 	{
 		boost::intrusive_ptr<traversal_algorithm> ta = o->algorithm();
+        if (ta) {
 		(const_cast<observer*>(o))->~observer();
 		ta->free_observer(const_cast<observer*>(o));
+        }
 	}
 }
 
@@ -138,6 +140,7 @@ void observer::done()
 void observer::short_timeout()
 {
 	if (flags & flag_short_timeout) return;
+    if (m_algorithm)
 	m_algorithm->failed(observer_ptr(this), traversal_algorithm::short_timeout);
 }
 
@@ -145,6 +148,7 @@ void observer::timeout()
 {
 	if (flags & flag_done) return;
 	flags |= flag_done;
+    if (m_algorithm)
 	m_algorithm->failed(observer_ptr(this));
 }
 
@@ -476,6 +480,7 @@ observer::~observer()
 	TORRENT_ASSERT(m_in_use);
 	m_in_use = false;
 #endif
+    if (!m_algorithm)   printf("~observer: %p\n", this);
 }
 
 } } // namespace libtorrent::dht

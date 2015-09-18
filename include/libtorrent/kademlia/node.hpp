@@ -284,12 +284,14 @@ public:
 	void add_traversal_algorithm(traversal_algorithm* a)
 	{
 		mutex_t::scoped_lock l(m_mutex);
+        printf("add traversal algo %p, name %s\n", a, a->name());
 		m_running_requests.insert(a);
 	}
 
 	void remove_traversal_algorithm(traversal_algorithm* a)
 	{
 		mutex_t::scoped_lock l(m_mutex);
+        printf("del traversal algo %p, name %s\n", a, a->name());
 		m_running_requests.erase(a);
 	}
 

@@ -128,6 +128,7 @@ get_peers::get_peers(
 	, m_data_callback(dcallback)
 	, m_noseeds(noseeds)
 {
+        printf("get_peers: %p\n", this);
 }
 
 char const* get_peers::name() const { return "get_peers"; }
